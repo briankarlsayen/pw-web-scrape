@@ -14,7 +14,7 @@ function joinNonEmptyStrings(arr: string[]) {
 export const scrape = async () => {
   console.log('scraping...');
   const browser = await playwright.chromium.launch({
-    headless: false,
+    headless: true,
   });
 
   // const pageUrl = 'https://www.facebook.com/groups/reactjsphilippines';
