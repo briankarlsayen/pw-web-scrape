@@ -1,5 +1,6 @@
-import playwright from 'playwright';
-
+import playwright from 'playwright-core';
+// import playwright from 'playwright';
+import chromium from 'chrome-aws-lambda';
 interface IScrapedData {
   id: number;
   message: string;
@@ -14,7 +15,10 @@ function joinNonEmptyStrings(arr: string[]) {
 export const scrape = async () => {
   console.log('scraping...');
   const browser = await playwright.chromium.launch({
-    headless: true,
+    // headless: true,
+    // args: chromium.args,
+    // executablePath: await chromium.executablePath,
+    headless: chromium.headless,
   });
 
   // const pageUrl = 'https://www.facebook.com/groups/reactjsphilippines';
