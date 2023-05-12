@@ -129,7 +129,7 @@ const reddit = async () => {
 
 function getRandomDelay(delay: boolean) {
   if (!delay) return 0;
-  return Math.floor(Math.random() * 9000) + 1000;
+  return Math.floor(Math.random() * 4000) + 1000;
 }
 
 export const cheerioScrape = async () => {
