@@ -139,18 +139,9 @@ export const cheerioScrape = async () => {
     const browser = await puppeteer.launch({
       args: chrome.args,
       executablePath: execPath,
-      // executablePath: await chrome.executablePath,
+      // headless: true,
       headless: chrome.headless,
     });
-    // const browser = await puppeteer.launch(
-    //   process.env.NODE_ENV === 'production'
-    //     ? {
-    //         args: chrome.args,
-    //         executablePath: await chrome.executablePath,
-    //         headless: chrome.headless,
-    //       }
-    //     : {}
-    // );
 
     console.log('haha');
 
@@ -171,8 +162,48 @@ export const cheerioScrape = async () => {
     //   '#m_group_stories_container > section > article'
     // );
 
-    // const articleCount = await articles.count();
-    const result = await page.title();
+    // const links = await page.evaluate(() => {
+    //   return Array.from(
+    //     document.querySelectorAll('.story_body_container div a'),
+    //     (e) => ({
+    //       title: e.getAttribute('href'),
+    //     })
+    //   );
+    // });
+
+    const articles = await page.evaluate(() =>
+      Array.from(
+        document.querySelectorAll(
+          '#m_group_stories_container  section  article'
+        ),
+        (e) => {
+          const todayArr = ['hrs', 'hr', 'today', 'min', 'ngayong', 'oras'];
+
+          const isToday = (words: string | null | undefined) => {
+            if (!words) return false;
+            return todayArr.some((str) => words.toLowerCase().includes(str));
+          };
+
+          const todayText = e.querySelector(
+            '.story_body_container header a abbr'
+          )?.textContent;
+
+          return {
+            content: e.querySelector('.story_body_container')?.textContent,
+            todayText,
+            today: isToday(todayText?.toLowerCase()),
+            link: e
+              .querySelector('.story_body_container div a[aria-label]')
+              ?.getAttribute('href'),
+          };
+        }
+      )
+    );
+
+    const result = {
+      pageTitle: await page.title(),
+      articles,
+    };
 
     await browser.close();
     return result;
