@@ -38,7 +38,7 @@ app.get('/', async (_req: Request, res: Response) => {
 //   }
 // });
 
-app.get('/cheerio-scrape', async (_req: Request, res: Response) => {
+app.get('/cheerio', async (_req: Request, res: Response) => {
   console.log('start');
   try {
     const scrapeData = await cheerioScrape();
@@ -47,6 +47,12 @@ app.get('/cheerio-scrape', async (_req: Request, res: Response) => {
     console.log('failed to scrape');
     res.status(422).json({ message: 'failed to scrape' });
   }
+});
+
+app.get('/yow', async (_req: Request, res: Response) => {
+  res.status(200).json({
+    message: 'Yow!',
+  });
 });
 
 app.get('/dummy', async (_req: Request, res: Response) => {

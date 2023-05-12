@@ -9,8 +9,8 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
-const LOCAL_CHROME_EXECUTABLE =
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+// const LOCAL_CHROME_EXECUTABLE =
+//   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 interface IScrapedData {
   id: number;
