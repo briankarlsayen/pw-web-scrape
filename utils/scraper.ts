@@ -1,16 +1,7 @@
-// import playwright from 'playwright-core';
-// // import playwright from 'playwright';
-// import edgeChromium from 'chrome-aws-lambda';
-
-// // Importing Puppeteer core as default otherwise
-// // it won't function correctly with "launch()"
-// import puppeteer from 'puppeteer-core';
-
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-
-// const LOCAL_CHROME_EXECUTABLE =
-//   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+import puppeteer, { ScreenshotOptions } from 'puppeteer-core';
+import chrome from 'chrome-aws-lambda';
 
 interface IScrapedData {
   id: number;
@@ -117,25 +108,76 @@ function joinNonEmptyStrings(arr: string[]) {
 //   }
 // };
 
+const reddit = async () => {
+  const response = await axios.get(
+    'https://old.reddit.com/r/learnprogramming/'
+  );
+
+  const html = response.data;
+
+  const $ = cheerio.load(html);
+
+  const titles = [] as any;
+
+  $('div > p.title > a').each((_idx, el) => {
+    const title = $(el).text();
+    titles.push(title);
+  });
+
+  return titles;
+};
+
 export const cheerioScrape = async () => {
   try {
-    const response = await axios.get(
-      'https://old.reddit.com/r/learnprogramming/'
-    );
+    const pageUrl = 'https://m.facebook.com/groups/875676539148789';
 
-    const html = response.data;
+    const execPath =
+      process.env.NODE_ENV === 'production'
+        ? await chrome.executablePath
+        : 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 
-    const $ = cheerio.load(html);
-
-    const titles = [] as any;
-
-    $('div > p.title > a').each((_idx, el) => {
-      const title = $(el).text();
-      titles.push(title);
+    const browser = await puppeteer.launch({
+      args: chrome.args,
+      executablePath: execPath,
+      // executablePath: await chrome.executablePath,
+      headless: chrome.headless,
     });
+    // const browser = await puppeteer.launch(
+    //   process.env.NODE_ENV === 'production'
+    //     ? {
+    //         args: chrome.args,
+    //         executablePath: await chrome.executablePath,
+    //         headless: chrome.headless,
+    //       }
+    //     : {}
+    // );
 
-    return titles;
+    console.log('haha');
+
+    const page = await browser.newPage();
+    await page.waitForTimeout(2000);
+    await page.goto(pageUrl);
+    await page.waitForTimeout(2000);
+
+    // const ssOpt: ScreenshotOptions = {
+    //   type: 'jpeg',
+    //   fullPage: true,
+    //   omitBackground: true,
+    //   path: '/images',
+    // };
+    // await page.screenshot(ssOpt);
+
+    // const articles = page.locator(
+    //   '#m_group_stories_container > section > article'
+    // );
+
+    // const articleCount = await articles.count();
+    const result = await page.title();
+
+    await browser.close();
+    return result;
   } catch (error) {
+    console.log('error', error);
     throw error;
   }
 };

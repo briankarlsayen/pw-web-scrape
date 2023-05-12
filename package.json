@@ -23,10 +23,12 @@
     "@playwright/test": "^1.33.0",
     "axios": "^1.4.0",
     "cheerio": "^1.0.0-rc.12",
+    "chrome-aws-lambda": "^8.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "playwright": "^1.33.0",
+    "puppeteer-core": "^8.0.0",
     "typescript": "^5.0.4"
   }
 }
