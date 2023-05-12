@@ -1,6 +1,16 @@
 import playwright from 'playwright-core';
 // import playwright from 'playwright';
-import chromium from 'chrome-aws-lambda';
+import edgeChromium from 'chrome-aws-lambda';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+
+// Importing Puppeteer core as default otherwise
+// it won't function correctly with "launch()"
+import puppeteer from 'puppeteer-core';
+
+const LOCAL_CHROME_EXECUTABLE =
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+
 interface IScrapedData {
   id: number;
   message: string;
@@ -15,10 +25,11 @@ function joinNonEmptyStrings(arr: string[]) {
 export const scrape = async () => {
   console.log('scraping...');
   const browser = await playwright.chromium.launch({
-    // headless: true,
+    // const browser = await playwright.chromium.launch({
+    headless: true,
     // args: chromium.args,
     // executablePath: await chromium.executablePath,
-    headless: chromium.headless,
+    // headless: chromium.headless,
   });
 
   // const pageUrl = 'https://www.facebook.com/groups/reactjsphilippines';
@@ -82,4 +93,48 @@ export const scrape = async () => {
   }
   await browser.close();
   return scrapedDatas;
+};
+
+export const chromeScrape = async () => {
+  try {
+    const executablePath = await edgeChromium.executablePath;
+    console.log('executablePath', executablePath);
+
+    const browser = await puppeteer.launch({
+      executablePath,
+      args: edgeChromium.args,
+      headless: true,
+    });
+
+    const page = await browser.newPage();
+    await page.goto('https://github.com');
+    return 'henlo';
+  } catch (error) {
+    return {
+      message: 'error',
+    };
+  }
+};
+
+export const cheerioScrape = async () => {
+  try {
+    const response = await axios.get(
+      'https://old.reddit.com/r/learnprogramming/'
+    );
+
+    const html = response.data;
+
+    const $ = cheerio.load(html);
+
+    const titles = [] as any;
+
+    $('div > p.title > a').each((_idx, el) => {
+      const title = $(el).text();
+      titles.push(title);
+    });
+
+    return titles;
+  } catch (error) {
+    throw error;
+  }
 };
