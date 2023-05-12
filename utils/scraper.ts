@@ -136,6 +136,8 @@ export const cheerioScrape = async () => {
   try {
     const pageUrl = 'https://m.facebook.com/groups/875676539148789';
 
+    const isProd = process.env.NODE_ENV === 'production' ? true : false;
+
     const execPath =
       process.env.NODE_ENV === 'production'
         ? await chrome.executablePath
@@ -144,21 +146,18 @@ export const cheerioScrape = async () => {
     const browser = await puppeteer.launch({
       args: chrome.args,
       executablePath: execPath,
-      // headless: true,
-      headless: chrome.headless,
+      headless: isProd ? chrome.headless : false,
     });
 
-    const isDelayed = process.env.NODE_ENV === 'production' ? true : false;
-
     const page = await browser.newPage();
-    await page.waitForTimeout(getRandomDelay(isDelayed));
+    await page.waitForTimeout(getRandomDelay(isProd));
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
     );
-    // await page.waitForTimeout(getRandomDelay(isDelayed));
+    // await page.waitForTimeout(getRandomDelay(isProd));
 
     await page.goto(pageUrl);
-    await page.waitForTimeout(getRandomDelay(isDelayed));
+    await page.waitForTimeout(getRandomDelay(isProd));
 
     // const ssOpt: ScreenshotOptions = {
     //   type: 'jpeg',
@@ -214,10 +213,58 @@ export const cheerioScrape = async () => {
       pageTitle: await page.title(),
       articles,
     };
-    await page.waitForTimeout(getRandomDelay(isDelayed));
+    await page.waitForTimeout(getRandomDelay(isProd));
 
     await browser.close();
     return result;
+  } catch (error) {
+    console.log('error', error);
+    throw error;
+  }
+};
+
+export const screenshot = async () => {
+  try {
+    const pageUrl = 'https://musclewiki.com/';
+
+    const execPath =
+      process.env.NODE_ENV === 'production'
+        ? await chrome.executablePath
+        : 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+
+    const isProd = process.env.NODE_ENV === 'production' ? true : false;
+
+    const browser = await puppeteer.launch({
+      args: chrome.args,
+      executablePath: execPath,
+      headless: isProd ? chrome.headless : true,
+    });
+
+    const page = await browser.newPage();
+    await page.waitForTimeout(getRandomDelay(isProd));
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    );
+
+    await page.goto(pageUrl, {
+      waitUntil: 'domcontentloaded',
+    });
+
+    const ssOpt: ScreenshotOptions = {
+      type: 'png',
+      fullPage: false,
+      clip: { x: 0, y: 0, width: 500, height: 250 },
+      omitBackground: true,
+      path: 'screenshot.png',
+    };
+    const sshot = await page.screenshot(ssOpt);
+
+    const base64String = sshot && sshot.toString('base64');
+    await browser.close();
+    return {
+      image: `data:image/png;base64,${base64String}`,
+      message: 'screenshot completed',
+    };
   } catch (error) {
     console.log('error', error);
     throw error;

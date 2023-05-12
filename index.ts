@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import cors from 'cors';
-import { cheerioScrape } from './utils/scraper';
+import { cheerioScrape, screenshot } from './utils/scraper';
 
 const app: Express = express();
 app.use(express.json());
@@ -46,6 +46,16 @@ app.get('/cheerio', async (_req: Request, res: Response) => {
   } catch (error) {
     console.log('failed to scrape');
     res.status(422).json({ message: 'failed to scrape' });
+  }
+});
+
+app.get('/screenshot', async (_req: Request, res: Response) => {
+  try {
+    const getScreenshot = await screenshot();
+    res.status(200).json(getScreenshot);
+  } catch (error) {
+    console.log('failed to scrape');
+    res.status(422).json({ message: 'failed to ss' });
   }
 });
 
