@@ -250,14 +250,14 @@ export const screenshot = async () => {
       waitUntil: 'domcontentloaded',
     });
 
-    const ssOpt: ScreenshotOptions = {
-      type: 'png',
-      fullPage: false,
-      clip: { x: 0, y: 0, width: 500, height: 250 },
-      omitBackground: true,
-      path: 'screenshot.png',
-    };
-    const sshot = await page.screenshot(ssOpt);
+    // const ssOpt: ScreenshotOptions = {
+    //   type: 'png',
+    //   fullPage: false,
+    //   clip: { x: 0, y: 0, width: 500, height: 250 },
+    //   omitBackground: true,
+    //   path: 'screenshot.png',
+    // };
+    const sshot = await page.screenshot();
 
     const base64String = sshot && sshot.toString('base64');
     await browser.close();
