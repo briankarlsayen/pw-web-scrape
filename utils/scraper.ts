@@ -129,7 +129,7 @@ const reddit = async () => {
 
 function getRandomDelay(delay: boolean) {
   if (!delay) return 0;
-  return Math.floor(Math.random() * 4000) + 1000;
+  return Math.floor(Math.random() * 2000) + 1000;
 }
 
 export const cheerioScrape = async () => {
@@ -155,7 +155,7 @@ export const cheerioScrape = async () => {
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
     );
-    await page.waitForTimeout(getRandomDelay(isDelayed));
+    // await page.waitForTimeout(getRandomDelay(isDelayed));
 
     await page.goto(pageUrl);
     await page.waitForTimeout(getRandomDelay(isDelayed));
