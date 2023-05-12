@@ -127,6 +127,11 @@ const reddit = async () => {
   return titles;
 };
 
+function getRandomDelay(delay: boolean) {
+  if (!delay) return 0;
+  return Math.floor(Math.random() * 9000) + 1000;
+}
+
 export const cheerioScrape = async () => {
   try {
     const pageUrl = 'https://m.facebook.com/groups/875676539148789';
@@ -143,12 +148,17 @@ export const cheerioScrape = async () => {
       headless: chrome.headless,
     });
 
-    console.log('haha');
+    const isDelayed = process.env.NODE_ENV === 'production' ? true : false;
 
     const page = await browser.newPage();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(getRandomDelay(isDelayed));
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    );
+    await page.waitForTimeout(getRandomDelay(isDelayed));
+
     await page.goto(pageUrl);
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(getRandomDelay(isDelayed));
 
     // const ssOpt: ScreenshotOptions = {
     //   type: 'jpeg',
@@ -204,6 +214,7 @@ export const cheerioScrape = async () => {
       pageTitle: await page.title(),
       articles,
     };
+    await page.waitForTimeout(getRandomDelay(isDelayed));
 
     await browser.close();
     return result;
