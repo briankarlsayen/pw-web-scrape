@@ -149,25 +149,15 @@ function isImageUrl(url: any) {
   return imageExtensions.includes(extension);
 }
 
-async function getImageDimensions(url: string) {
-  const response = await axios.get(url, { responseType: 'arraybuffer' });
-  const buffer = Buffer.from(response.data, 'binary');
-
-  const imgSize = sizeOf(buffer);
-
-  return {
-    width: imgSize.width ?? 0,
-    height: imgSize.height ?? 0,
-  };
-}
 // async function getImageDimensions(url: string) {
-//   const img = await loadImage(url);
-//   const canvas = createCanvas(img.width, img.height);
-//   const ctx = canvas.getContext('2d');
-//   ctx.drawImage(img, 0, 0);
+//   const response = await axios.get(url, { responseType: 'arraybuffer' });
+//   const buffer = Buffer.from(response.data, 'binary');
+
+//   const imgSize = sizeOf(buffer);
+
 //   return {
-//     width: canvas.width,
-//     height: canvas.height,
+//     width: imgSize.width ?? 0,
+//     height: imgSize.height ?? 0,
 //   };
 // }
 
@@ -175,7 +165,7 @@ async function getImageDimensions(url: string) {
 const imgFilter = async ({ src, height, width }: ILink) => {
   if (typeof src === 'string') {
     if (startsWithHttpOrHttps(src) && isImageUrl(src)) {
-      const { width, height } = await getImageDimensions(src);
+      // const { width, height } = await getImageDimensions(src);
       if (height >= 100 || width >= 100) return true;
     }
   }
@@ -245,36 +235,6 @@ export const screenshot = async ({ url }: PScreenshot) => {
         width: e.naturalWidth,
       }));
     });
-
-    // const ssOpt: ScreenshotOptions = {
-    //   type: 'png',
-    //   fullPage: false,
-    //   clip: { x: 0, y: 0, width: 500, height: 250 },
-    //   omitBackground: true,
-    //   path: 'screenshot.png',
-    // };
-    // const sshot = await page.screenshot(ssOpt);
-
-    // await Promise.all(
-    //   links.map(async (link) => {
-    //     const validImage = imgFilter(link.src);
-    //     if (!validImage) {
-    //       const ssOpt: ScreenshotOptions = {
-    //         // type: 'png',
-    //         fullPage: false,
-    //         clip: { x: link.x, y: link.y, width: 500, height: 250 },
-    //         omitBackground: true,
-    //         // path: 'screenshot.png',
-    //       };
-
-    //       const shot = await page.screenshot(ssOpt);
-    //       const base64String = shot && shot.toString('base64');
-    //       const dataImg = `data:image/png;base64,${base64String}`;
-    //       return dataImg;
-    //     }
-    //     return link.src;
-    //   })
-    // );
 
     const imageLink = await findStringInArray(links, page);
 
