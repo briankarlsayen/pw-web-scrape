@@ -2,8 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import puppeteer, { ScreenshotOptions } from 'puppeteer-core';
 import chrome from 'chrome-aws-lambda';
-import { createCanvas, loadImage } from 'canvas';
-
+import sizeOf from 'image-size';
 interface IScrapedData {
   id: number;
   message: string;
@@ -151,15 +150,26 @@ function isImageUrl(url: any) {
 }
 
 async function getImageDimensions(url: string) {
-  const img = await loadImage(url);
-  const canvas = createCanvas(img.width, img.height);
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0);
+  const response = await axios.get(url, { responseType: 'arraybuffer' });
+  const buffer = Buffer.from(response.data, 'binary');
+
+  const imgSize = sizeOf(buffer);
+
   return {
-    width: canvas.width,
-    height: canvas.height,
+    width: imgSize.width ?? 0,
+    height: imgSize.height ?? 0,
   };
 }
+// async function getImageDimensions(url: string) {
+//   const img = await loadImage(url);
+//   const canvas = createCanvas(img.width, img.height);
+//   const ctx = canvas.getContext('2d');
+//   ctx.drawImage(img, 0, 0);
+//   return {
+//     width: canvas.width,
+//     height: canvas.height,
+//   };
+// }
 
 // * check for valid image link format [0]-https|http, [-1]-png|jpg|svg
 const imgFilter = async ({ src, height, width }: ILink) => {
@@ -231,8 +241,8 @@ export const screenshot = async ({ url }: PScreenshot) => {
     const links = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('img'), (e) => ({
         src: e.getAttribute('src'),
-        height: e.height,
-        width: e.width,
+        height: e.naturalHeight,
+        width: e.naturalWidth,
       }));
     });
 
