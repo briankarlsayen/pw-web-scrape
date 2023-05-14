@@ -49,9 +49,10 @@ app.get('/cheerio', async (_req: Request, res: Response) => {
   }
 });
 
-app.get('/screenshot', async (_req: Request, res: Response) => {
+app.get('/screenshot', async (req: Request, res: Response) => {
+  const { url } = req.body;
   try {
-    const getScreenshot = await screenshot();
+    const getScreenshot = await screenshot({ url });
     res.status(200).json(getScreenshot);
   } catch (error) {
     console.log('failed to scrape');
