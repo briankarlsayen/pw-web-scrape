@@ -266,7 +266,7 @@ export const screenshot = async ({ url }: PScreenshot) => {
       waitUntil: 'networkidle0',
       // waitUntil: 'domcontentloaded',
       // waitUntil: 'load',
-      timeout: 10000,
+      timeout: 8000,
     });
 
     // await page.setDefaultNavigationTimeout(5000);
