@@ -266,7 +266,10 @@ export const screenshot = async ({ url }: PScreenshot) => {
       waitUntil: 'networkidle0',
       // waitUntil: 'domcontentloaded',
       // waitUntil: 'load',
+      timeout: 10000,
     });
+
+    // await page.setDefaultNavigationTimeout(5000);
 
     const links = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('img'), (e) => ({
