@@ -149,24 +149,25 @@ function isImageUrl(url: any) {
   return imageExtensions.includes(extension);
 }
 
-// async function getImageDimensions(url: string) {
-//   const response = await axios.get(url, { responseType: 'arraybuffer' });
-//   const buffer = Buffer.from(response.data, 'binary');
+async function getImageDimensions(url: string) {
+  const response = await axios.get(url, { responseType: 'arraybuffer' });
+  const buffer = Buffer.from(response.data, 'binary');
 
-//   const imgSize = sizeOf(buffer);
+  const imgSize = sizeOf(buffer);
 
-//   return {
-//     width: imgSize.width ?? 0,
-//     height: imgSize.height ?? 0,
-//   };
-// }
+  return {
+    width: imgSize.width ?? 0,
+    height: imgSize.height ?? 0,
+  };
+}
 
 // * check for valid image link format [0]-https|http, [-1]-png|jpg|svg
 const imgFilter = async ({ src, height, width }: ILink) => {
   if (typeof src === 'string') {
-    if (startsWithHttpOrHttps(src) && isImageUrl(src)) {
-      // const { width, height } = await getImageDimensions(src);
-      if (height >= 100 || width >= 100) return true;
+    if (startsWithHttpOrHttps(src)) {
+      // if (startsWithHttpOrHttps(src) && isImageUrl(src)) {
+      const { width, height } = await getImageDimensions(src);
+      if (Number(height) >= 100 || Number(width) >= 100) return true;
     }
   }
   return false;
@@ -174,33 +175,69 @@ const imgFilter = async ({ src, height, width }: ILink) => {
 
 interface ILink {
   src: string | null;
-  height: number;
-  width: number;
+  height?: number;
+  width?: number;
 }
 
 const findStringInArray = async (links: ILink[], page: any) => {
   for (let i = 0; i < links.length; i++) {
     const validImage = await imgFilter(links[i]);
-    if (!validImage) {
-      const ssOpt: ScreenshotOptions = {
-        // type: 'png',
-        fullPage: false,
-        clip: { x: 0, y: 0, width: 500, height: 250 },
-        omitBackground: true,
-        // path: 'screenshot.png',
-      };
-
-      const shot = await page.screenshot(ssOpt);
-      const base64String = shot && shot.toString('base64');
-      const dataImg = `data:image/png;base64,${base64String}`;
-      return dataImg;
-    }
-    return links[i].src;
+    if (validImage) return links[i].src;
   }
-  return null; // Return null if no string is found in the array
+  return null; // * Return null if no string is found in the array
 };
 
-// TODO get image src
+const getPageDescription = async (page: any) => {
+  let desList: string[] = await page.evaluate(() => {
+    const desc1 = document.head
+      ?.querySelector('meta[name="description"]')
+      ?.getAttribute('content');
+
+    const desc2 = document.head
+      ?.querySelector('meta[property="og:description"]')
+      ?.getAttribute('content');
+
+    return [desc1, desc2];
+  });
+  return desList.find(
+    (item) => item !== null && item !== undefined && item !== ''
+  );
+};
+
+const getPageTitle = async (page: any) => {
+  let titList: string[] = await page.evaluate(() => {
+    const tit1 = document.head
+      ?.querySelector('meta[name="title"]')
+      ?.getAttribute('content');
+
+    const tit2 = document.head
+      ?.querySelector('meta[property="og:title"]')
+      ?.getAttribute('content');
+
+    const tit3 = document.head
+      ?.querySelector('meta[property="og:site_name"]')
+      ?.getAttribute('content');
+
+    return [tit1, tit2, tit3];
+  });
+  return titList.find(
+    (item) => item !== null && item !== undefined && item !== ''
+  );
+};
+
+const getPageLogo = async (page: any) => {
+  let logoList: string[] = await page.evaluate(() => {
+    const logo1 = document.head
+      ?.querySelector('meta[property="og:image"]')
+      ?.getAttribute('content');
+
+    return [logo1];
+  });
+  return logoList.find(
+    (item) => item !== null && item !== undefined && item !== ''
+  );
+};
+
 export const screenshot = async ({ url }: PScreenshot) => {
   try {
     const pageUrl = 'https://musclewiki.com/';
@@ -225,7 +262,8 @@ export const screenshot = async ({ url }: PScreenshot) => {
     );
 
     await page.goto(url, {
-      waitUntil: 'domcontentloaded',
+      waitUntil: 'networkidle0',
+      // waitUntil: 'domcontentloaded',
     });
 
     const links = await page.evaluate(() => {
@@ -236,16 +274,38 @@ export const screenshot = async ({ url }: PScreenshot) => {
       }));
     });
 
-    const imageLink = await findStringInArray(links, page);
+    const pageDescription = (await getPageDescription(page)) ?? null;
+    const pageTitle = (await getPageTitle(page)) ?? null;
+    const pageImage = (await getPageLogo(page)) ?? null;
 
-    // const base64String = sshot && sshot.toString('base64');
+    let imageLink = await findStringInArray(links, page);
+    if (!imageLink) {
+      await page.waitForTimeout(5000);
+      const ssOpt: ScreenshotOptions = {
+        // type: 'png',
+        fullPage: false,
+        clip: { x: 0, y: 0, height: 250, width: 600 },
+        omitBackground: true,
+        // path: 'screenshot.png',
+      };
+
+      const shot = await page.screenshot(ssOpt);
+      const base64String = shot && shot.toString('base64');
+      const dataImg = `data:image/png;base64,${base64String}`;
+      imageLink = dataImg;
+    }
+
+    const image = (await imgFilter({ src: pageImage })) ? pageImage : imageLink;
+
     await browser.close();
     return {
-      // image: `data:image/png;base64,${base64String}`,
-      // sshots,
-      message: 'screenshot completed',
-      links,
-      imageLink,
+      sucess: true,
+      // links,
+      description: pageDescription,
+      title: pageTitle,
+      // logo: pageImage,
+      // imageLink,
+      image,
     };
   } catch (error) {
     console.log('error', error);
