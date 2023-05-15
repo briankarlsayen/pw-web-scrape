@@ -188,70 +188,55 @@ const findStringInArray = async (links: ILink[], page: any) => {
 };
 
 const getPageDescription = async (page: any) => {
-  let desList: string[] = await page
-    .evaluate(() => {
-      const desc1 = document.head
-        ?.querySelector('meta[name="description"]')
-        ?.getAttribute('content');
+  let desList: string[] = await page.evaluate(() => {
+    const desc1 = document.head
+      ?.querySelector('meta[name="description"]')
+      ?.getAttribute('content');
 
-      const desc2 = document.head
-        ?.querySelector('meta[property="og:description"]')
-        ?.getAttribute('content');
+    const desc2 = document.head
+      ?.querySelector('meta[property="og:description"]')
+      ?.getAttribute('content');
 
-      return [desc1, desc2];
-    })
-    .then((res: any) => {
-      setTimeout(() => {
-        console.log(res);
-      }, 2000);
-    });
-  return desList?.find(
+    return [desc1, desc2];
+  });
+
+  return desList.find(
     (item) => item !== null && item !== undefined && item !== ''
   );
 };
 
 const getPageTitle = async (page: any) => {
-  let titList: string[] = await page
-    .evaluate(() => {
-      const tit1 = document.head
-        ?.querySelector('meta[name="title"]')
-        ?.getAttribute('content');
+  let titList: string[] = await page.evaluate(() => {
+    const tit1 = document.head
+      ?.querySelector('meta[name="title"]')
+      ?.getAttribute('content');
 
-      const tit2 = document.head
-        ?.querySelector('meta[property="og:title"]')
-        ?.getAttribute('content');
+    const tit2 = document.head
+      ?.querySelector('meta[property="og:title"]')
+      ?.getAttribute('content');
 
-      const tit3 = document.head
-        ?.querySelector('meta[property="og:site_name"]')
-        ?.getAttribute('content');
+    const tit3 = document.head
+      ?.querySelector('meta[property="og:site_name"]')
+      ?.getAttribute('content');
 
-      return [tit1, tit2, tit3];
-    })
-    .then((res: any) => {
-      setTimeout(() => {
-        console.log(res);
-      }, 2000);
-    });
-  return titList?.find(
+    return [tit1, tit2, tit3];
+  });
+
+  return titList.find(
     (item) => item !== null && item !== undefined && item !== ''
   );
 };
 
 const getPageLogo = async (page: any) => {
-  let logoList: string[] = await page
-    .evaluate(() => {
-      const logo1 = document.head
-        ?.querySelector('meta[property="og:image"]')
-        ?.getAttribute('content');
+  let logoList: string[] = await page.evaluate(() => {
+    const logo1 = document.head
+      ?.querySelector('meta[property="og:image"]')
+      ?.getAttribute('content');
 
-      return [logo1];
-    })
-    .then((res: any) => {
-      setTimeout(() => {
-        console.log(res);
-      }, 2000);
-    });
-  return logoList?.find(
+    return [logo1];
+  });
+
+  return logoList.find(
     (item) => item !== null && item !== undefined && item !== ''
   );
 };
@@ -280,6 +265,7 @@ export const screenshot = async ({ url }: PScreenshot) => {
     await page.goto(url, {
       waitUntil: 'networkidle0',
       // waitUntil: 'domcontentloaded',
+      // waitUntil: 'load',
     });
 
     const links = await page.evaluate(() => {
