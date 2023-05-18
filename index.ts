@@ -49,10 +49,25 @@ app.get('/cheerio', async (_req: Request, res: Response) => {
   }
 });
 
-app.get('/screenshot', async (req: Request, res: Response) => {
-  const { url } = req.body;
+app.post('/screenshot', async (req: Request, res: Response) => {
+  const { url, fullpage, height, width, waitUntil } = req.body;
   try {
-    const getScreenshot = await screenshot({ url });
+    const waitUntilList = [
+      'domcontentloaded',
+      'networkidle0',
+      'load',
+      'networkidle2',
+    ];
+
+    const filteredWait = waitUntilList.find((item) => item === waitUntil);
+
+    const defaultParams = {
+      fullpage: fullpage ?? false,
+      height: Number(height) ?? 250,
+      width: Number(width) ?? 600,
+      waitUntil: filteredWait ?? null,
+    };
+    const getScreenshot = await screenshot({ url, params: defaultParams });
     res.status(200).json(getScreenshot);
   } catch (error) {
     console.log('failed to scrape');

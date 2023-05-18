@@ -1,6 +1,9 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import puppeteer, { ScreenshotOptions } from 'puppeteer-core';
+import puppeteer, {
+  PuppeteerLifeCycleEvent,
+  ScreenshotOptions,
+} from 'puppeteer-core';
 import chrome from 'chrome-aws-lambda';
 import sizeOf from 'image-size';
 interface IScrapedData {
@@ -129,8 +132,15 @@ export const cheerioScrape = async () => {
   }
 };
 
+interface IScreenshotParams {
+  height: number;
+  width: number;
+  fullpage: boolean;
+  waitUntil?: any;
+}
 interface PScreenshot {
   url: string;
+  params: IScreenshotParams;
 }
 
 interface IScreenshotRes {
@@ -167,7 +177,7 @@ const imgFilter = async ({ src, height, width }: ILink) => {
     if (startsWithHttpOrHttps(src)) {
       // if (startsWithHttpOrHttps(src) && isImageUrl(src)) {
       const { width, height } = await getImageDimensions(src);
-      if (Number(height) >= 100 || Number(width) >= 100) return true;
+      if (Number(height) >= 200 || Number(width) >= 200) return true;
     }
   }
   return false;
@@ -241,7 +251,7 @@ const getPageLogo = async (page: any) => {
   );
 };
 
-export const screenshot = async ({ url }: PScreenshot) => {
+export const screenshot = async ({ url, params }: PScreenshot) => {
   try {
     const pageUrl = 'https://musclewiki.com/';
 
@@ -262,14 +272,26 @@ export const screenshot = async ({ url }: PScreenshot) => {
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
     );
-    await page.goto(url, {
-      waitUntil: 'networkidle0',
-      // waitUntil: 'domcontentloaded',
-      // waitUntil: 'load',
-      timeout: 8000,
-    });
 
-    // await page.setDefaultNavigationTimeout(5000);
+    const waitOpt = params?.waitUntil
+      ? {
+          waitUntil: params?.waitUntil,
+          timeout: 8000,
+        }
+      : {
+          timeout: 8000,
+        };
+
+    if (params.waitUntil) {
+      await page.goto(url, {
+        waitUntil: params?.waitUntil,
+        timeout: 8000,
+      });
+    } else {
+      await page.goto(url, {
+        timeout: 8000,
+      });
+    }
 
     const links = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('img'), (e) => ({
@@ -285,13 +307,19 @@ export const screenshot = async ({ url }: PScreenshot) => {
 
     let imageLink = await findStringInArray(links, page);
     if (!imageLink) {
-      const ssOpt: ScreenshotOptions = {
+      const fullPage: ScreenshotOptions = {
         // type: 'png',
-        fullPage: false,
-        clip: { x: 0, y: 0, height: 250, width: 600 },
+        fullPage: params.fullpage,
         omitBackground: true,
         // path: 'screenshot.png',
       };
+
+      const clip = {
+        clip: { x: 0, y: 0, height: params.height, width: params.width },
+        omitBackground: true,
+      };
+
+      const ssOpt = params.fullpage ? fullPage : clip;
 
       const shot = await page.screenshot(ssOpt);
       const base64String = shot && shot.toString('base64');
