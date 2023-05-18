@@ -306,6 +306,7 @@ export const screenshot = async ({ url, params }: PScreenshot) => {
     const pageImage = (await getPageLogo(page)) ?? null;
 
     let imageLink = await findStringInArray(links, page);
+    let isScreenshot = false;
     if (!imageLink) {
       const fullPage: ScreenshotOptions = {
         // type: 'png',
@@ -324,10 +325,12 @@ export const screenshot = async ({ url, params }: PScreenshot) => {
       const shot = await page.screenshot(ssOpt);
       const base64String = shot && shot.toString('base64');
       const dataImg = `data:image/png;base64,${base64String}`;
+      isScreenshot = true;
       imageLink = dataImg;
     }
 
-    const image = (await imgFilter({ src: pageImage })) ? pageImage : imageLink;
+    const isPageImg = await imgFilter({ src: pageImage });
+    const image = isPageImg ? pageImage : imageLink;
 
     await browser.close();
     return {
@@ -337,6 +340,7 @@ export const screenshot = async ({ url, params }: PScreenshot) => {
       title: pageTitle,
       // logo: pageImage,
       // imageLink,
+      isScreenshot,
       image,
     };
   } catch (error) {
