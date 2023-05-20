@@ -171,7 +171,7 @@ async function getImageDimensions(url: string) {
   };
 }
 
-// * check for valid image link format [0]-https|http, [-1]-png|jpg|svg
+// * check for valid image link format
 const imgFilter = async ({ src, height, width }: ILink) => {
   if (typeof src === 'string') {
     if (startsWithHttpOrHttps(src)) {
@@ -189,7 +189,8 @@ interface ILink {
   width?: number;
 }
 
-const findStringInArray = async (links: ILink[], page: any) => {
+// * return first image
+const findImageOnLinks = async (links: ILink[], page: any) => {
   for (let i = 0; i < links.length; i++) {
     const validImage = await imgFilter(links[i]);
     if (validImage) return links[i].src;
@@ -301,13 +302,17 @@ export const screenshot = async ({ url, params }: PScreenshot) => {
       }));
     });
 
+    // * get data on html head
     const pageDescription = (await getPageDescription(page)) ?? null;
     const pageTitle = (await getPageTitle(page)) ?? null;
     const pageImage = (await getPageLogo(page)) ?? null;
 
-    let imageLink = await findStringInArray(links, page);
+    let imageLink = await findImageOnLinks(links, page);
+    const isPageImg = await imgFilter({ src: pageImage });
     let isScreenshot = false;
-    if (!imageLink) {
+
+    // * if no image found then make screenshot
+    if (imageLink === null && !isPageImg) {
       const fullPage: ScreenshotOptions = {
         // type: 'png',
         fullPage: params.fullpage,
@@ -315,23 +320,18 @@ export const screenshot = async ({ url, params }: PScreenshot) => {
         // path: 'screenshot.png',
       };
 
-      console.log('params', params);
-
       const clip = {
         clip: { x: 0, y: 0, height: params.height, width: params.width },
         omitBackground: true,
       };
 
       const ssOpt = params.fullpage ? fullPage : clip;
-
       const shot = await page.screenshot(ssOpt);
       const base64String = shot && shot.toString('base64');
       const dataImg = `data:image/png;base64,${base64String}`;
       isScreenshot = true;
       imageLink = dataImg;
     }
-
-    const isPageImg = await imgFilter({ src: pageImage });
     const image = isPageImg ? pageImage : imageLink;
 
     await browser.close();
