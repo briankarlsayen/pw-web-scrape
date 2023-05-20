@@ -315,6 +315,8 @@ export const screenshot = async ({ url, params }: PScreenshot) => {
         // path: 'screenshot.png',
       };
 
+      console.log('params', params);
+
       const clip = {
         clip: { x: 0, y: 0, height: params.height, width: params.width },
         omitBackground: true,

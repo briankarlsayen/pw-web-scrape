@@ -63,10 +63,12 @@ app.post('/screenshot', async (req: Request, res: Response) => {
 
     const defaultParams = {
       fullpage: fullpage ?? false,
-      height: Number(height) ?? 250,
-      width: Number(width) ?? 600,
+      height: Number(height) ? Number(height) : 250,
+      width: Number(width) ? Number(width) : 600,
       waitUntil: filteredWait ?? null,
     };
+    console.log('defaultParams', defaultParams);
+
     const getScreenshot = await screenshot({ url, params: defaultParams });
     res.status(200).json(getScreenshot);
   } catch (error) {
