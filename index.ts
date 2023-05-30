@@ -77,6 +77,44 @@ app.post('/screenshot', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/urldata', async (req: Request, res: Response) => {
+  const { url } = req.query as any;
+  const { fullpage, height, width, waitUntil } = req.body;
+  try {
+    const waitUntilList = [
+      'domcontentloaded',
+      'networkidle0',
+      'load',
+      'networkidle2',
+    ];
+
+    const filteredWait = waitUntilList.find((item) => item === waitUntil);
+
+    const defaultParams = {
+      fullpage: fullpage ?? false,
+      height: Number(height) ? Number(height) : 250,
+      width: Number(width) ? Number(width) : 600,
+      waitUntil: filteredWait ?? null,
+    };
+    const getScreenshot = await screenshot({ url, params: defaultParams });
+    const responseFormat = {
+      success: 1,
+      meta: {
+        title: getScreenshot.title,
+        description: getScreenshot.description,
+        image: {
+          url: getScreenshot.image,
+        },
+      },
+    };
+
+    res.status(200).json(responseFormat);
+  } catch (error) {
+    console.log('failed to scrape');
+    res.status(422).json({ message: 'failed to ss' });
+  }
+});
+
 app.get('/yow', async (_req: Request, res: Response) => {
   res.status(200).json({
     message: 'Yow!',
